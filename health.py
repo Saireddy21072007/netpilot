@@ -194,23 +194,3 @@ def roll_up(
     return ov
 
 
-def diagnose(
-    gateway_snap: HealthSnapshot | None,
-    net_snap: HealthSnapshot,
-    gateway_icmp_blocked: bool = False,
-) -> str:
-    """Plain-English verdict on WHICH side of the path is the problem."""
-    local_bad = gateway_snap is not None and gateway_snap.verdict != GO and not gateway_icmp_blocked
-    net_bad = net_snap.verdict != GO
-
-    if net_bad and local_bad:
-        return "Laptop<->router link AND internet path both unstable. Move closer to the AP / try another network."
-    if net_bad:
-        if gateway_icmp_blocked:
-            return "Internet path is congested (gateway ignores ping, can't isolate further). Switch network or wait."
-        return "Router/WiFi link is fine, but the upstream internet path is congested (ISP/campus). Switch network or wait."
-    if local_bad:
-        return "Local WiFi link to the router is unstable (distance/interference), but internet beyond it is okay."
-    if gateway_icmp_blocked:
-        return "All clear. (Gateway AP ignores ping; internet path is healthy.)"
-    return "All clear."
